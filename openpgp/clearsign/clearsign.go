@@ -253,14 +253,19 @@ func (d *dashEscaper) Write(data []byte) (n int, err error) {
 			}
 		} else {
 			if b == '\n' {
-				// We got a raw \n. Drop any trailing whitespace and write a
-				// CRLF.
+				// Write whitespace to buffer
+				d.whitespace = append(d.whitespace, b)
+				if _, err = d.buffered.Write(d.whitespace); err != nil {
+					return
+				}
+				// if err = d.buffered.WriteByte(b); err != nil {
+				// 	return
+				// }
+
+				// Drop any trailing whitespace for the hashers.
 				d.whitespace = d.whitespace[:0]
 				// We delay writing CRLF to the hash until the start of the
 				// next line.
-				if err = d.buffered.WriteByte(b); err != nil {
-					return
-				}
 				d.atBeginningOfLine = true
 			} else {
 				// Any buffered whitespace wasn't at the end of the line so
